@@ -1,7 +1,8 @@
 ## ----setup, include = FALSE----------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.dim = c(7,5)
 )
 
 library(cusum)
@@ -61,7 +62,7 @@ cusum_cs <- cusum(
   odds_multiplier = 2,
   reset = TRUE)
   
-head(cusum_cs)
+plot(cusum_cs)
 
 ## ------------------------------------------------------------------------
 n_patients <- nrow(cusum_example_p2)
@@ -99,8 +100,7 @@ racusum_cs <- racusum(patient_risks,
                       limit = racusum_limit,
                       odds_multiplier = 2,
                       reset = FALSE)
-
-head(racusum_cs)
+plot(racusum_cs)
 
 ## ------------------------------------------------------------------------
 
@@ -110,7 +110,7 @@ racusum_cs <- racusum(patient_risks,
                       odds_multiplier = 2,
                       reset = TRUE)
 
-head(racusum_cs)
+plot(racusum_cs)
 
 ## ------------------------------------------------------------------------
 racusum_alpha <- racusum_alpha_sim(

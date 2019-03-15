@@ -56,7 +56,7 @@ cusum <- function(failure_probability, patient_outcomes, limit, odds_multiplier 
   }
 
   assert_logical(reset, any.missing = FALSE, len = 1)
-
+  
   ## Calculate CUSUM Chart ####
   npat <- length(patient_outcomes)
 
@@ -95,11 +95,7 @@ cusum <- function(failure_probability, patient_outcomes, limit, odds_multiplier 
   cs <- as.data.frame(cs)
   names(cs) <- c("t", "failure_probability", "ct", "signal", "limit")
 
-  plot(cs$t, cs$ct,
-    type = "l",
-    xlab = "t", ylab = "C[t]", ylim = c(0, limit * 1.25)
-  )
-  abline(h = limit, col = "blue")
-
+  class(cs) <- c("cusum", "data.frame")
+  
   return(cs)
 }

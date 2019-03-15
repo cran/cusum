@@ -1,6 +1,6 @@
 Package: cusum
 Title: CUSUM Charts for Monitoring of Hospital Performance
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person("Lena", "Hubig", 
     email = "cs@lenahubig.de", 
@@ -14,11 +14,11 @@ Encoding: UTF-8
 LazyData: true
 Imports: stats, graphics, checkmate
 Suggests: testthat, knitr, rmarkdown
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2018-11-08 14:10:46 UTC; lena
+Packaged: 2019-03-15 12:40:21 UTC; schneiderheinze
 Author: Lena Hubig [aut, cre] (<https://orcid.org/0000-0002-9454-1232>)
 Maintainer: Lena Hubig <cs@lenahubig.de>
 Repository: CRAN
-Date/Publication: 2018-11-18 18:20:02 UTC
+Date/Publication: 2019-03-15 13:04:08 UTC

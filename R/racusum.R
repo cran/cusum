@@ -64,7 +64,7 @@ racusum <- function(patient_risks, patient_outcomes, limit, odds_multiplier = 2,
   }
 
   assert_logical(reset, any.missing = FALSE, len = 1)
-
+  
   ## Calculate RA-CUSUM Chart ####
   npat <- length(patient_risks)
 
@@ -99,11 +99,8 @@ racusum <- function(patient_risks, patient_outcomes, limit, odds_multiplier = 2,
   cs <- as.data.frame(cs)
   names(cs) <- c("t", "p", "ct", "signal", "limit")
 
-  plot(cs$t, cs$ct,
-    type = "l",
-    xlab = "t", ylab = "C[t]", ylim = c(0, limit * 1.25)
-  )
-  abline(h = limit, col = "blue")
+  class(cs) <- c("cusum", "data.frame")
+
 
   return(cs)
 }
