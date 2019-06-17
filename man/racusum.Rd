@@ -5,7 +5,7 @@
 \title{Risk-adjusted CUSUM Charts}
 \usage{
 racusum(patient_risks, patient_outcomes, limit, odds_multiplier = 2,
-  reset = TRUE)
+  reset = TRUE, limit_method = c("constant", "dynamic"))
 }
 \arguments{
 \item{patient_risks}{A vector containing patient risk scores}
@@ -17,6 +17,8 @@ racusum(patient_risks, patient_outcomes, limit, odds_multiplier = 2,
 \item{odds_multiplier}{Odds multiplier for the alternative hypothesis (<1 looks for decreases); defaults to 2}
 
 \item{reset}{Resets the CUSUM after a signal to 0; defaults to TRUE}
+
+\item{limit_method}{"constant" or "dynamic"}
 }
 \description{
 Calculate risk-adjusted CUSUM charts for performance data
@@ -26,25 +28,29 @@ Calculate risk-adjusted CUSUM charts for performance data
 # If not, these risk scores can be simulated.
 
 # define possible patient risk scores
-risks <- c(0.001,0.01,0.1,0.002,0.02,0.2)
+risks <- c(0.001, 0.01, 0.1, 0.002, 0.02, 0.2)
 
 # sample risk population of size n = 100
 set.seed(2046)
 patient_risks <- sample(x = risks, size = 100, replace = TRUE)
 
-# control limit can be obtained with racusum_CL_sim(),
-# here it is set to an arbitrary value (2.96)
+# control limit can be obtained with racusum_limit_sim(),
+# here it is set to an arbitrary value (2.96),
+# or dynamic control limits with racusum_limit_dpcl()
 
 ##### RA-CUSUM of in-control process
 # simulate patient outcome for performace as expected
 set.seed(2046)
-patient_outcomes <- as.logical(rbinom(n = 100,
-    size = 1,
-    prob = patient_risks))
+patient_outcomes <- as.logical(rbinom(
+  n = 100,
+  size = 1,
+  prob = patient_risks
+))
 
 racusum(patient_risks,
-    patient_outcomes,
-    limit = 2.96)
+  patient_outcomes,
+  limit = 2.96
+)
 
 #### RA-CUSUM of out-of-control process
 # simulate patient outcome for deviating performance
@@ -53,7 +59,7 @@ set.seed(2046)
 patient_outcomes <- as.logical(rbinom(n = 100, size = 1, prob = patient_risks * 2))
 #'
 racusum(patient_risks,
-    patient_outcomes,
-    limit = 2.96)
-
+  patient_outcomes,
+  limit = 2.96
+)
 }
