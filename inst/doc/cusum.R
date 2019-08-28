@@ -2,7 +2,7 @@
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.dim = c(7,5)
+  fig.dim = c(7, 5)
 )
 
 library(cusum)
@@ -32,11 +32,11 @@ n_patients <- nrow(cusum_example_p1)
 ## ------------------------------------------------------------------------
 
 cusum_limit <- cusum_limit_sim(failure_probability,
-                            n_patients,
-                            odds_multiplier = 2,
-                            n_simulation = 1000,
-                            alpha = 0.05,
-                            seed = 2046)
+                               n_patients,
+                               odds_multiplier = 2, 
+                               n_simulation = 1000,
+                               alpha = 0.05,
+                               seed = 2046)
 
 
 print(cusum_limit)
@@ -45,36 +45,33 @@ print(cusum_limit)
 patient_outcomes <- cusum_example_p2$y
 
 
-cusum_cs <- cusum(
-  failure_probability,
-  patient_outcomes,
-  limit = cusum_limit,
-  odds_multiplier = 2,
-  reset = FALSE)
-  
+cusum_cs <- cusum(failure_probability,
+                  patient_outcomes,
+                  limit = cusum_limit,
+                  odds_multiplier = 2,
+                  reset = FALSE)
+
 head(cusum_cs)
+plot(cusum_cs)
 
 ## ------------------------------------------------------------------------
-cusum_cs <- cusum(
-  failure_probability,
-  patient_outcomes,
-  limit = cusum_limit,
-  odds_multiplier = 2,
-  reset = TRUE)
-  
+cusum_cs <- cusum(failure_probability,
+                  patient_outcomes,
+                  limit = cusum_limit,
+                  odds_multiplier = 2,
+                  reset = TRUE)
+
 plot(cusum_cs)
 
 ## ------------------------------------------------------------------------
 n_patients <- nrow(cusum_example_p2)
 
-cusum_alpha <- cusum_alpha_sim(
-  failure_probability,
-  n_patients,
-  odds_multiplier = 2,
-  n_simulation = 1000,
-  limit = cusum_limit,
-  seed = 2046
-)
+cusum_alpha <- cusum_alpha_sim(failure_probability,
+                               n_patients,
+                               odds_multiplier = 2,
+                               n_simulation = 1000,
+                               limit = cusum_limit,
+                               seed = 2046)
 
 print(cusum_alpha)
 
@@ -87,11 +84,11 @@ racusum_limit <- racusum_limit_sim(patient_risks,
                                    n_simulation = 1000,
                                    alpha = 0.05,
                                    seed = 2046)
-  
+
 print(racusum_limit)
 
 ## ------------------------------------------------------------------------
-patient_risks <- racusum_example_p2$score 
+patient_risks <- racusum_example_p2$score
 
 patient_outcomes <- racusum_example_p2$y
 
@@ -113,13 +110,33 @@ racusum_cs <- racusum(patient_risks,
 plot(racusum_cs)
 
 ## ------------------------------------------------------------------------
-racusum_alpha <- racusum_alpha_sim(
-  patient_risks,
-  odds_multiplier = 2,
-  n_simulation = 1000,
-  limit = racusum_limit,
-  seed = 2046
-)
+racusum_alpha <- racusum_alpha_sim(patient_risks,
+                                   odds_multiplier = 2,
+                                   n_simulation = 1000,
+                                   limit = racusum_limit,
+                                   seed = 2046)
 
 print(racusum_alpha)
+
+## ------------------------------------------------------------------------
+
+cusum_limit_improve <- cusum_limit_sim(failure_probability,
+                                       n_patients,
+                                       odds_multiplier = .5,
+                                       n_simulation = 1000,
+                                       alpha = 0.5,seed = 2046)
+
+cusum_cs_improve <- cusum(failure_probability,
+                          patient_outcomes = cusum_example_p2$y,
+                          limit = cusum_limit_improve,
+                          odds_multiplier = .5)
+
+plot(cusum_cs_improve)
+
+cusum_alpha_sim(failure_probability,
+                n_patients,
+                odds_multiplier = 0.5,
+                n_simulation = 1000,
+                limit = cusum_limit_improve,
+                seed = 2046)
 

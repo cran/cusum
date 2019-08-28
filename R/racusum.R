@@ -5,11 +5,12 @@
 #' @import checkmate
 #' @import stats
 #' @import graphics
-#' @param patient_risks A vector containing patient risk scores
-#' @param patient_outcomes A vector containing patient outcomes in logical format (TRUE = event, FALSE = no event)
-#' @param limit Control limit to signal process deterioration
-#' @param odds_multiplier Odds multiplier for the alternative hypothesis (<1 looks for decreases); defaults to 2
-#' @param reset Resets the CUSUM after a signal to 0; defaults to TRUE
+#' @param patient_risks Double. Vector of patient risk scores (individual risk of adverse event)
+#' @param patient_outcomes Integer. Vector of binary patient outcomes (0,1)
+#' @param limit Double. Control limit for signalling performance change
+#' @param weights Double. Optional vector of weights, if empty, standard CUSUM weights are calculated with weights_t
+#' @param odds_multiplier Double. Odds multiplier of adverse event under the alternative hypothesis (<1 looks for decreases)
+#' @param reset Logical. Reset the CUSUM after a signal to 0; defaults to TRUE
 #' @param limit_method "constant" or "dynamic"
 #' @examples
 #' # Patients risks are usually known from Phase I.
@@ -50,33 +51,41 @@
 #'   patient_outcomes,
 #'   limit = 2.96
 #' )
-racusum <- function(patient_risks, patient_outcomes, limit, odds_multiplier = 2, reset = TRUE, limit_method = c("constant", "dynamic")) {
+racusum <- function(patient_risks, patient_outcomes, limit, weights = NA, odds_multiplier = 2, reset = TRUE, limit_method = c("constant", "dynamic")) {
   npat <- length(patient_risks)
 
   ## Check user input ####
-  assert_numeric(patient_risks, lower = 0, upper = 1, min.len = 1, finite = TRUE, any.missing = FALSE)
+  assert_numeric(patient_risks, lower = 0, upper = 1, finite = TRUE, any.missing = FALSE, min.len = 1)
   if (length(patient_risks) != length(patient_outcomes)) {
     stop("Length patient_risks and patient_outcomes of unequal size.")
   }
-
-  assert_logical(patient_outcomes, any.missing = FALSE)
-
-  limit_method <- match.arg(limit_method)
-  if (length(limit) == 1 & npat > 1 & limit_method == "dynamic") {
-    stop("Provide vector of limit if limit_method = dynamic. Else change to constant")
+  
+  if (!is.na(weights)){
+    assert_numeric(weights, lower = 0, upper = 1, finite = TRUE, any.missing = FALSE, min.len = 1)
+    if (length(weights) != length(patient_outcomes)) {
+      stop("Length weights and patient outcomes of unequal size.")
+    }
   }
 
-  if (limit_method == "constant") {
+  patient_outcomes <- as.integer(patient_outcomes)
+  assert_integer(patient_outcomes, lower = 0, upper = 1, any.missing = FALSE, min.len = 1)
+
+  if (!missing(limit_method)) {
+    warning("argument limit_method is deprecated and not needed anymore.",
+      call. = FALSE
+    )
+  }
+
+  if (length(limit) == 1) {
     limit <- rep(limit, length.out = npat)
   }
 
-  # assert_numeric(limit, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
 
-  assert_numeric(odds_multiplier, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
+  assert_numeric(odds_multiplier, lower = 0, finite = TRUE, any.missing = FALSE, len = 1)
   if (odds_multiplier < 1) {
     message("CUSUM is set to detect process improvements (odds_multiplier < 1). ")
-    
-    if (limit > 0){
+
+    if (limit > 0) {
       warning("Control limit should be negative to signal process improvements.")
     }
   }
@@ -89,36 +98,52 @@ racusum <- function(patient_risks, patient_outcomes, limit, odds_multiplier = 2,
 
   ## Calculate RA-CUSUM Chart ####
   npat <- length(patient_risks)
-
-  p <- patient_risks
-
+  
+  if (is.na(weights)){
+    w <- weights_t(patient_outcomes,
+                   probability_ae = patient_risks,
+                   odds_multiplier)
+  }
+  
   ct <- 0 # initial CUSUM value
+ 
   cs <- matrix(0, nrow = npat, ncol = 5) # storage matrix for alarms
-
-  # CUSUM weights
-  ws <- log((1 - p + 1 * p) / (1 - p + odds_multiplier * p))
-  wf <- log(((1 - p + 1 * p) * odds_multiplier) / ((1 - p + odds_multiplier * p) * 1))
-
-  w <- ifelse(patient_outcomes == 1, wf, ws) # weights based on outcome
+  # p <- patient_risks
+  # 
+   # 
+  # # CUSUM weights
+  # ws <- log((1 - p + 1 * p) / (1 - p + odds_multiplier * p))
+  # wf <- log(((1 - p + 1 * p) * odds_multiplier) / ((1 - p + odds_multiplier * p) * 1))
+  # 
+  # w <- ifelse(patient_outcomes == 1, wf, ws) # weights based on outcome
 
   for (ii in 1:npat) {
     if (odds_multiplier > 1) {
       ct <- max(0, ct + w[ii])
+
+      if (ct >= limit[ii]) {
+        # test for signal
+        cs[ii, 4] <- 1 # store signal
+        cs[, 5] <- limit[ii]
+        if (reset == 1) ct <- 0
+      } else {
+        cs[ii, 4] <- 0
+      }
     } else if (odds_multiplier < 1) {
       ct <- min(0, ct - w[ii])
-    }    
+
+      if (ct <= limit[ii]) {
+        # test for signal
+        cs[ii, 4] <- 1 # store signal
+        cs[, 5] <- limit[ii]
+        if (reset == 1) ct <- 0
+      } else {
+        cs[ii, 4] <- 0
+      }
+    }
     cs[ii, 1] <- ii # store patient id
-    cs[ii, 2] <- p[ii] # store patient risk
+    cs[ii, 2] <- patient_risks[ii] # store patient risk
     cs[ii, 3] <- ct # store CUSUM value
-    if (ct >= limit[ii]) {
-      # test for signal
-      cs[ii, 4] <- 1 # store signal
-      cs[, 5] <- limit[ii]
-      if (reset == 1) ct <- 0
-    }
-    else {
-      cs[ii, 4] <- 0
-    }
   }
 
 

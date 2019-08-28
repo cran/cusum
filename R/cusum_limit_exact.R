@@ -5,11 +5,11 @@
 #'
 #' @export
 #' @import checkmate
-#' @param failure_probability Accepted failure probability of process
-#' @param n_patients Sample size
-#' @param odds_multiplier Odds multiplier for the alternative hypothesis (<1 looks for decreases)
-#' @param alpha False signal probability
-#' @return Returns the CL for small sample sizes
+#' @param failure_probability Double. Baseline failure probability
+#' @param n_patients Integer. Number of patients in monitoring period /sample size
+#' @param odds_multiplier Double. Odds multiplier of adverse event under the alternative hypothesis (<1 looks for decreases)
+#' @param alpha Double. False signal probability of CUSUM
+#' @return Returns the control limit for signalling performance change for small sample sizes (double)
 #' @examples
 #'
 #' # calculate exact control limits for alpha = 0.05
@@ -32,16 +32,16 @@ cusum_limit_exact <- function(n_patients,
   assert_numeric(failure_probability, lower = 0, upper = 1, finite = TRUE, any.missing = FALSE, len = 1)
   if (failure_probability > 0.5) {
     failure_probability <- 1 - failure_probability
-    warning("Accepted failure probability failure_probability will be recoded to 1-failure_probability when > 0.5.")
+    warning("Baseline failure probability failure_probability will be recoded to 1 - failure_probability when > 0.5.")
   }
 
-  n_patients <- as.integer(n_patients)
-  assert_integer(n_patients, lower = 1, any.missing = FALSE, len = 1)
+  assert_integer(as.integer(n_patients), lower = 1,upper  = 20, any.missing = FALSE, len = 1)
+  
   if (n_patients > 15) {
-    message("Exact calculation only works for very small sample sizes of around <= 10 (check ?cusum_limit_sim_exact for more information). \nPlease abort if calculation takes to long. ")
+    message("Exact calculation only works for very small sample sizes of around <= 10 (check ?cusum_limit_exact for more information). \nPlease abort if calculation takes to long. ")
   }
 
-  assert_numeric(odds_multiplier, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
+  assert_numeric(odds_multiplier, lower = 0, finite = TRUE, any.missing = FALSE, len = 1)
   if (odds_multiplier < 1) {
     message("CUSUM detects process improvements (odds_multiplier < 1). ")
   }
@@ -49,8 +49,7 @@ cusum_limit_exact <- function(n_patients,
     warning("CUSUM detects no process change (odds_multiplier = 1).")
   }
 
-  assert_numeric(alpha, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
-
+  assert_numeric(alpha, lower = 0, upper = 1, finite = TRUE, any.missing = FALSE, len = 1)
 
   p.0 <- failure_probability
   o.0 <- p.0 / (1 - p.0)
@@ -63,7 +62,13 @@ cusum_limit_exact <- function(n_patients,
     return(prod(ifelse(kk == 1, pp, 1 - pp)))
   }, pp = failure_probability)
 
-
+  which_rfc <- function(xx, mm) {
+    res <- apply(mm, 2, function(yy, cc) {
+      return(sum(yy >= cc) > 0)
+    }, cc = xx)
+    
+    return(res)
+  }
   cs <- apply(outcome, 1, calc_cusum, c0 = failure_probability, cA = p.1)
   limit <- unique(as.vector(cs))
   which.res <- lapply(limit, which_rfc, mm = cs)
@@ -77,7 +82,12 @@ cusum_limit_exact <- function(n_patients,
   return(res[which.min(abs(alpha - res[, 2])), 1])
 }
 
-
+#' Make all outcomes
+#'
+#' creates all possible sequences of outcomes for a sample size
+#'
+#' @param npat_outcome Number of patients (sample sizes)
+#' @return Returns matrix of possible sequences
 make_all_outcomes <- function(npat_outcome) {
 
   #
@@ -93,14 +103,15 @@ make_all_outcomes <- function(npat_outcome) {
   return(m)
 }
 
+#' Calculate CUSUM
+#'
+#' This function calculates the CUSUM chart for the given sequence of successes and failures
+#'
+#' @param x vector of outcomes
+#' @param c0 accepted failure probability
+#' @param cA smallest detectable failure probability
+#' @return Returns matrix of possible sequences
 calc_cusum <- function(x, c0, cA) {
-
-  #
-  # 	This function calculates the CUSUM chart
-  # 	for the given sequence of successes and failures
-  # 	provided by the vector x: x=0 no failure, x=1 failure
-  #
-
   wt <- ifelse(x == 0, log((1 - cA) / (1 - c0)), log(cA / c0))
 
   j <- length(wt)
@@ -113,10 +124,4 @@ calc_cusum <- function(x, c0, cA) {
   return(ct)
 }
 
-which_rfc <- function(xx, mm) {
-  res <- apply(mm, 2, function(yy, cc) {
-    return(sum(yy >= cc) > 0)
-  }, cc = xx)
 
-  return(res)
-}
