@@ -7,7 +7,6 @@ knitr::opts_chunk$set(
 
 library(cusum)
 library(ggplot2)
-library(dplyr)
 
 
 ## ------------------------------------------------------------------------

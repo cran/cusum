@@ -22,23 +22,23 @@
 #'   seed = 2046
 #' )
 cusum_limit_sim <- function(failure_probability, n_patients, odds_multiplier, n_simulation, alpha, seed = NULL) {
-
+  
   ## Check user input ####
   assert_numeric(failure_probability, lower = 0, upper = 1, finite = TRUE, any.missing = FALSE, len = 1)
   if (failure_probability > 0.5) {
     failure_probability <- 1 - failure_probability
     warning("Accepted failure probability failure_probability will be recoded to 1-failure_probability when > 0.5.")
   }
-
+  
   n <- as.integer(n_patients)
   assert_integer(as.integer(n_patients), lower = 1, any.missing = FALSE, len = 1)
 
   assert_numeric(odds_multiplier, lower = 0, finite = TRUE, any.missing = FALSE, len = 1)
   if (odds_multiplier < 1) {
-    message("CUSUM detects process improvements (odds_multiplier < 1). ")
+    #message("CUSUM detects process improvements (odds_multiplier < 1). ")
   }
   if (odds_multiplier == 1) {
-    warning("CUSUM detects no process change (odds_multiplier = 1).")
+    stop("CUSUM detects no process change (odds_multiplier = 1).")
   }
 
   assert_integer(as.integer(n_simulation), lower = 1, any.missing = FALSE, len = 1)
@@ -76,7 +76,12 @@ cusum_limit_sim <- function(failure_probability, n_patients, odds_multiplier, n_
   rl <- lapply(1:n_simulation, cs_sim)
 
   ## Estimate Alpha ####
-  cl <- quantile(unlist(rl), 1 - alpha)
+  if (odds_multiplier > 1){
+    cl <- quantile(unlist(rl), 1 - alpha)
+    
+  } else {
+    cl <- quantile(unlist(rl), alpha)
+  }
 
   return(as.numeric(cl))
 }

@@ -36,10 +36,10 @@ racusum_limit_sim <- function(patient_risks, odds_multiplier, n_simulation, alph
 
   assert_numeric(odds_multiplier, lower = 0, finite = TRUE, any.missing = FALSE, len = 1)
   if (odds_multiplier < 1) {
-    message("CUSUM detects process improvements (odds_multiplier < 1). ")
+   # message("CUSUM detects process improvements (odds_multiplier < 1). ")
   }
   if (odds_multiplier == 1) {
-    warning("CUSUM detects no process change (odds_multiplier = 1).")
+    stop("CUSUM detects no process change (odds_multiplier = 1).")
   }
 
   assert_integer(as.integer(n_simulation), lower = 1, any.missing = FALSE, len = 1)
@@ -91,7 +91,13 @@ racusum_limit_sim <- function(patient_risks, odds_multiplier, n_simulation, alph
   rl <- lapply(1:n_simulation, cs_sim)
 
   ## Estimate Alpha ####
-  q <- quantile(unlist(rl), 1 - alpha)
+  if (odds_multiplier > 1){
+    q <- quantile(unlist(rl), 1 - alpha)
+    
+  } else {
+    q <- quantile(unlist(rl), alpha)
+    
+  }
 
   return(as.numeric(q))
 }

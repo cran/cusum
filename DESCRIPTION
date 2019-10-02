@@ -1,8 +1,8 @@
 Package: cusum
 Title: Cumulative Sum (CUSUM) Charts for Monitoring of Hospital
         Performance
-Version: 0.4.0
-Date: 2019-08-28
+Version: 0.4.1
+Date: 2019-10-02
 Authors@R: c(
     person("Lena", "Hubig", 
     email = "cs@lenahubig.de", 
@@ -17,13 +17,14 @@ LazyData: true
 SystemRequirements: C++11
 Encoding: UTF-8
 Imports: stats, graphics, checkmate, data.table, Rcpp
-Suggests: testthat, knitr, dplyr, ggplot2, rmarkdown
+Suggests: testthat, knitr, ggplot2, rmarkdown
+Enhances: vdiffr, covr
 LinkingTo: Rcpp
 VignetteBuilder: knitr
 RoxygenNote: 6.1.1
 NeedsCompilation: yes
-Packaged: 2019-08-28 08:47:04 UTC; schneiderheinze
+Packaged: 2019-10-02 08:07:45 UTC; schneiderheinze
 Author: Lena Hubig [aut, cre] (<https://orcid.org/0000-0002-9454-1232>)
 Maintainer: Lena Hubig <cs@lenahubig.de>
 Repository: CRAN
-Date/Publication: 2019-08-28 09:10:12 UTC
+Date/Publication: 2019-10-02 09:30:03 UTC
